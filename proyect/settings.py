@@ -41,7 +41,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'hoja_vida.urls'
+ROOT_URLCONF = 'proyect.urls'
 
 TEMPLATES = [
     {
@@ -59,7 +59,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'hoja_vida.wsgi.application'
+WSGI_APPLICATION = 'proyect.wsgi.application'
 
 # BASE DE DATOS
 DATABASES = {
