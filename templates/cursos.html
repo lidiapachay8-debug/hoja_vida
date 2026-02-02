@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Cursos y Certificaciones{% endblock %}
+
+{% block content %}
+<style>
+    /* ... Tus estilos anteriores se mantienen igual ... */
+    .page-header { 
+        background: white; padding: 2rem; border-radius: 12px; 
+        border-left: 5px solid #198754; margin-bottom: 2rem; 
+    }
+    .course-card { 
+        background: white; border-radius: 12px; cursor: pointer; 
+        transition: 0.2s; border: 1px solid #eee; margin-bottom: 1rem; 
+    }
+    .course-card:hover, .course-card.active { 
+        border-left: 5px solid #198754; transform: translateX(5px); 
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    }
+    .viewer-container { 
+        background: #2b2b2b; border-radius: 0 0 12px 12px; /* Redondeado solo abajo para unir con el header */
+        padding: 10px; height: 600px; 
+    }
+    .pdf-frame { width: 100%; height: 100%; border-radius: 8px; background: white; }
+    
+    /* Nuevo estilo para el mini-encabezado del visor */
+    .viewer-header {
+        background: #f8f9fa;
+        border-radius: 12px 12px 0 0;
+        border: 1px solid #eee;
+        border-bottom: none;
+        padding: 12px 20px;
+    }
+    .description-box {
+        background: white; padding: 1.5rem; border-radius: 12px;
+        border-left: 5px solid #198754; margin-top: 1.5rem;
+    }
+</style>
+
+<div class="page-header shadow-sm d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="fw-bold">Cursos y Formación</h1>
+        <p class="text-muted mb-0">Certificaciones de {{ perfil.nombres }} {{ perfil.apellidos }}</p>
+    </div>
+    {% if perfil.archivo_cursos_completo %}
+        <a href="{{ perfil.archivo_cursos_completo.url }}" class="btn btn-primary btn-cv-style shadow-sm" download>
+            <i class="bi bi-download me-2"></i>Descargar Todo
+        </a>
+    {% endif %}
+</div>
+
+<div class="row">
+    <div class="col-md-4" style="max-height: 900px; overflow-y: auto;">
+        {% for curso in datos %}
+        <div class="card course-card shadow-sm {% if forloop.first %}active{% endif %}" 
+             onclick="cambiarCurso('{{ curso.rutacertificado.url }}', '{{ curso.descripcioncurso|escapejs }}', '{{ curso.nombrecurso|escapejs }}', this)">
+            <div class="card-body">
+                <h6 class="fw-bold mb-1">{{ curso.nombrecurso }}</h6>
+                <p class="text-success small mb-1"><b>{{ curso.entidadpatrocinadora }}</b></p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted"><i class="bi bi-calendar3"></i> {{ curso.fechafin|date:"Y" }}</small>
+                    <span class="badge bg-light text-dark border">{{ curso.totalhoras }}h</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted text-center">No hay cursos registrados.</p>
+        {% endfor %}
+    </div>
+
+    <div class="col-md-8">
+        {% if datos %}
+            <div class="viewer-header d-flex justify-content-between align-items-center shadow-sm">
+                <h5 id="tituloVisor" class="mb-0 fw-bold text-dark text-truncate" style="max-width: 70%;">
+                    {{ datos.0.nombrecurso }}
+                </h5>
+                <span class="badge bg-success">Certificado Oficial</span>
+            </div>
+
+            <div class="viewer-container shadow-sm">
+                <object id="pdfVisor" data="{{ datos.0.rutacertificado.url }}#toolbar=0" type="application/pdf" class="pdf-frame">
+                    <p class="text-white text-center p-5">Visualización no disponible.</p>
+                </object>
+            </div>
+
+            <div class="text-center mt-3">
+                <a id="btnDescargarIndividual" href="{{ datos.0.rutacertificado.url }}" class="btn btn-outline-dark px-4 shadow-sm" download>
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Descargar este certificado
+                </a>
+            </div>
+        {% else %}
+            <div class="h-100 d-flex align-items-center justify-content-center bg-light rounded border">
+                <p class="text-muted">Selecciona un curso para ver el certificado</p>
+            </div>
+        {% endif %}
+
+        <div id="descContainer" class="description-box shadow-sm {% if not datos %}d-none{% endif %}">
+            <h4 class="fw-bold text-dark mb-3">Detalle del Curso</h4>
+            <p id="cursoDescripcion" class="text-muted lh-lg" style="font-size: 1.1rem; text-align: justify;">
+                {% if datos %}{{ datos.0.descripcioncurso }}{% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function cambiarCurso(urlCert, textoLargo, titulo, elemento) {
+        // 1. Actualizar Visor
+        const visor = document.getElementById('pdfVisor');
+        if(visor) visor.setAttribute('data', urlCert + "#toolbar=0");
+        
+        // 2. Actualizar Título del encabezado y Botón de descarga
+        document.getElementById('tituloVisor').innerText = titulo;
+        document.getElementById('btnDescargarIndividual').setAttribute('href', urlCert);
+        
+        // 3. Actualizar el texto de la descripción
+        const descTexto = document.getElementById('cursoDescripcion');
+        const descCont = document.getElementById('descContainer');
+        
+        if (textoLargo && textoLargo !== 'None' && textoLargo !== '') {
+            descTexto.innerText = textoLargo;
+            descCont.classList.remove('d-none');
+        } else {
+            descCont.classList.add('d-none');
+        }
+
+        // 4. Estado visual de las tarjetas
+        document.querySelectorAll('.course-card').forEach(card => card.classList.remove('active'));
+        elemento.classList.add('active');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+
+    .award-selector {
+        display: flex; overflow-x: auto; gap: 12px; padding: 10px 5px; scrollbar-width: none;
+    }
+    .award-selector::-webkit-scrollbar { display: none; }
+
+    .award-mini-card {
+        min-width: 140px; max-width: 140px; height: 100px; cursor: pointer;
+        border: 2px solid #eee; border-radius: 12px; transition: all 0.3s ease;
+        background: #fdfdfd; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; text-align: center;
+    }
+
+    .award-mini-card.active {
+        border-color: #198754; background: #fff;
+        box-shadow: 0 5px 15px rgba(25, 135, 84, 0.1); transform: translateY(-3px);
+    }
+
+    .diploma-viewer {
+        background: #2b2b2b; 
+        border-radius: 20px 20px 0 0; 
+        padding: 15px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+
+    .pdf-frame { width: 100%; height: 600px; border-radius: 10px; background: white; }
+
+    .btn-minimal-style {
+        display: inline-flex;
+        align-items: center;
+        background-color: #ffffff;
+        color: #000000;
+        border: 1px solid #000000;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 400;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-minimal-style:hover {
+        background-color: #f8f9fa;
+        color: #000000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .desc-container {
+        background: #fff; border-left: 5px solid #198754;
+        padding: 20px; border-radius: 0 0 15px 15px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="fw-bold"><i class="bi bi-patch-check-fill text-success me-2"></i>Méritos y Reconocimientos</h2>
+            <p class="text-muted">Evidencia documental de mi trayectoria académica y profesional.</p>
+        </div>
+        <div class="col-md-5 text-md-end">
+            {% if datos.0.archivo_reconocimientos_completo %}
+            <a href="{{ datos.0.archivo_reconocimientos_completo.url }}" class="btn-minimal-style" download>
+                <i class="bi bi-file-earmark-zip me-2"></i>Descargar Todo
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="award-selector mb-5">
+        {% for rec in datos %}
+        <div class="award-mini-card {% if forloop.first %}active{% endif %}" 
+             onclick="cambiarReconocimiento('{{ rec.rutacertificado.url }}', '{{ rec.descripcionreconocimiento|escapejs }}', this)">
+            <i class="bi bi-award fs-3 text-muted mb-1"></i>
+            <span class="fw-bold small text-dark">CERTIFICADO</span>
+            <small class="text-muted">{{ rec.fechareconocimiento|date:"Y" }}</small>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="diploma-viewer">
+                {% if datos %}
+                <object id="visorPDF" data="{{ datos.0.rutacertificado.url }}" type="application/pdf" class="pdf-frame">
+                    <div class="p-5 text-white text-center">
+                        <p>Visualización no disponible.</p>
+                    </div>
+                </object>
+                {% endif %}
+            </div>
+
+            <div class="text-center py-4 bg-white border-start border-end border-bottom">
+                <a id="btnDescargaIndividual" href="{{ datos.0.rutacertificado.url }}" class="btn-minimal-style" download>
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Descargar este certificado
+                </a>
+            </div>
+
+            <div class="desc-container mt-4">
+                <h4 class="fw-bold text-dark mb-3">Detalle del Reconocimiento</h4>
+                <p id="tituloActual" class="text-muted lh-lg" style="font-size: 1.1rem;">
+                    {% if datos %}{{ datos.0.descripcionreconocimiento }}{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function cambiarReconocimiento(urlCert, textoLargo, elemento) {
+        const visor = document.getElementById('visorPDF');
+        if(visor) visor.setAttribute('data', urlCert);
+        
+        document.getElementById('btnDescargaIndividual').setAttribute('href', urlCert);
+        document.getElementById('tituloActual').innerText = textoLargo;
+
+        document.querySelectorAll('.award-mini-card').forEach(card => card.classList.remove('active'));
+        elemento.classList.add('active');
+    }
+</script>
+{% endblock %}
